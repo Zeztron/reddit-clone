@@ -8,7 +8,6 @@ export default function Home() {
       <Head>
         <title>Reddit 2.0 Clone</title>
       </Head>
-      <Header />
     </>
   );
 }
