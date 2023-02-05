@@ -1,6 +1,5 @@
-import Header from '@/components/Header';
 import Head from 'next/head';
-import Image from 'next/image';
+import PostBox from '@/components/PostBox';
 
 export default function Home() {
   return (
@@ -8,6 +7,9 @@ export default function Home() {
       <Head>
         <title>Reddit 2.0 Clone</title>
       </Head>
+
+      <PostBox />
+      <div>{/* Feed */}</div>
     </>
   );
 }

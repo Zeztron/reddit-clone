@@ -2,7 +2,8 @@
 const nextConfig = {
   reactStrictMode: true,
   images: {
-    domains: ['links.papareact.com'],
+    dangerouslyAllowSVG: true,
+    domains: ['links.papareact.com', 'api.dicebear.com'],
   },
 };
 
