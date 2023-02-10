@@ -1,5 +1,6 @@
 import Head from 'next/head';
 import PostBox from '@/components/PostBox';
+import Feed from '@/components/Feed';
 
 export default function Home() {
   return (
@@ -9,7 +10,9 @@ export default function Home() {
       </Head>
 
       <PostBox />
-      <div className="flex">{/* Feed */}</div>
+      <div className="flex">
+        <Feed />
+      </div>
     </div>
   );
 }

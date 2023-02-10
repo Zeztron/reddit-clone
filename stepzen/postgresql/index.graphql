@@ -14,6 +14,21 @@ type post {
   id: ID!
   created_at: DateTime
   body: String
+  votes: [vote]
+    @materializer(
+      query: "voteByPostId"
+      arguments: [{ name: "post_id", field: "id" }]
+    )
+  comment: [comment]
+    @materializer(
+      query: "commentByPostId"
+      arguments: [{ name: "post_id", field: "id" }]
+    )
+  subreddit: [subreddit]
+    @materializer(
+      query: "subredditListById"
+      arguments: [{ name: "id", field: "subreddit_id" }]
+    )
 }
 
 type subreddit {
@@ -43,12 +58,30 @@ type Query {
       table: "comment"
       configuration: "postgresql_config"
     )
+  commentByPostId(post_id: ID!): [comment]
+    @dbquery(
+      type: "postgresql"
+      schema: "public"
+      query: """
+      SELECT * FROM "comment" WHERE "post_id" = $1
+      """
+      configuration: "postgresql_config"
+    )
   commentPaginatedList(first: Int, after: Int): [comment]
     @dbquery(
       type: "postgresql"
       schema: "public"
       query: """
       SELECT "comment", "created_at", "id", "post_id", "username" FROM "comment" LIMIT $1 OFFSET $2
+      """
+      configuration: "postgresql_config"
+    )
+  subredditListById(id: ID!): [subreddit]
+    @dbquery(
+      type: "postgresql"
+      schema: "public"
+      query: """
+      SELECT * FROM "subreddit" WHERE "id" = $1
       """
       configuration: "postgresql_config"
     )
@@ -115,6 +148,16 @@ type Query {
       type: "postgresql"
       schema: "public"
       table: "vote"
+      configuration: "postgresql_config"
+    )
+  voteByPostId(post_id: ID!): [vote]
+    @dbquery(
+      type: "postgresql"
+      schema: "public"
+      query: """
+      SELECT * FROM "vote" WHERE "post_id" = $1
+      ORDER BY "created_at" desc
+      """
       configuration: "postgresql_config"
     )
   votePaginatedList(first: Int, after: Int): [vote]
