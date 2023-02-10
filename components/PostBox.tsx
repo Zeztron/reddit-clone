@@ -3,6 +3,11 @@ import React, { useState } from 'react';
 import Avatar from './Avatar';
 import { LinkIcon, PhotoIcon } from '@heroicons/react/24/outline';
 import { useForm } from 'react-hook-form';
+import { useMutation } from '@apollo/client';
+import { ADD_POST, ADD_SUBREDDIT } from '@/graphql/mutations';
+import client from '@/apollo-client';
+import { GET_SUBREDDIT_BY_TOPIC } from '@/graphql/queries';
+import toast from 'react-hot-toast';
 
 type FormData = {
   postTitle: string;
@@ -13,6 +18,9 @@ type FormData = {
 
 const PostBox = () => {
   const { data: session } = useSession();
+  const [addPost] = useMutation(ADD_POST);
+  const [addSubreddit] = useMutation(ADD_SUBREDDIT);
+
   const [imageBoxUpen, setImageBoxOpen] = useState<boolean>(false);
 
   const {
@@ -20,10 +28,88 @@ const PostBox = () => {
     handleSubmit,
     watch,
     formState: { errors },
+    setValue,
   } = useForm<FormData>();
 
+  const onSubmit = handleSubmit(async (formData) => {
+    const notification = toast.loading('Creating new post...');
+    try {
+      // Query for subreddit topic
+      const {
+        data: { subredditListByTopic },
+      } = await client.query({
+        query: GET_SUBREDDIT_BY_TOPIC,
+        variables: {
+          topic: formData.subreddit,
+        },
+      });
+
+      const subredditExists = subredditListByTopic.length > 0;
+
+      if (!subredditExists) {
+        // create subreddit
+        console.log('Subreddit is new! -> Createing a NEW Subreddit!');
+
+        const {
+          data: { insertSubreddit: newSubreddit },
+        } = await addSubreddit({
+          variables: {
+            topic: formData.subreddit,
+          },
+        });
+
+        console.log('Creating post...', formData);
+        const image = formData.postImage || '';
+
+        const {
+          data: { insertPost: newPost },
+        } = await addPost({
+          variables: {
+            body: formData.postBody,
+            image,
+            subreddit_id: newSubreddit.id,
+            title: formData.postTitle,
+            username: session?.user?.name,
+          },
+        });
+
+        console.log('New Post added', newPost);
+      } else {
+        // use existing subreddit
+        console.log('Using existing subreddit');
+        const image = formData.postImage || '';
+
+        const {
+          data: { insertPost: newPost },
+        } = await addPost({
+          variables: {
+            body: formData.postBody,
+            image,
+            subreddit_id: subredditListByTopic[0].id,
+            title: formData.postTitle,
+            username: session?.user?.name,
+          },
+        });
+
+        console.log('New Post added', newPost);
+      }
+
+      setValue('postBody', '');
+      setValue('postTitle', '');
+      setValue('postImage', '');
+      setValue('subreddit', '');
+
+      toast.success('New Post Created!', { id: notification });
+    } catch (error) {
+      toast.error('Whoops something went wrong!', { id: notification });
+    }
+  });
+
   return (
-    <form className="sticky top-16 z-50 bg-white border rounded-md border-gray-300 p-2">
+    <form
+      onSubmit={onSubmit}
+      className="sticky top-16 z-50 bg-white border rounded-md border-gray-300 p-2"
+    >
       <div className="flex items-center space-x-3">
         <Avatar />
         <input
@@ -59,8 +145,8 @@ const PostBox = () => {
           <div className="flex items-center px-2">
             <p className="min-w-[90px]">Subreddit:</p>
             <input
+              {...register('subreddit', { required: true })}
               className="m-2 flex-1 bg-blue-50 p-2 outline-none"
-              {...register('subreddit')}
               type="text"
               placeholder="i.e. reactjs"
             />
@@ -77,6 +163,28 @@ const PostBox = () => {
                 placeholder="Optional..."
               />
             </div>
+          )}
+
+          {/* Errors */}
+          {Object.keys(errors).length > 0 && (
+            <div className="space-y-2 p-2 text-red-500">
+              {errors.postTitle?.type === 'required' && (
+                <p>- A Post Title is required</p>
+              )}
+
+              {errors.subreddit?.type === 'required' && (
+                <p>- Subreddit is required</p>
+              )}
+            </div>
+          )}
+
+          {watch('postTitle') && (
+            <button
+              type="submit"
+              className="w-full rounded-full bg-blue-400 p-2 text-white"
+            >
+              Create Post
+            </button>
           )}
         </div>
       )}
