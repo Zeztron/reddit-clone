@@ -16,19 +16,22 @@ import {
   MegaphoneIcon,
   GlobeAmericasIcon,
 } from '@heroicons/react/24/outline';
+import Link from 'next/link';
 
 const Header = () => {
   const { data: session } = useSession();
 
   return (
-    <div className="sticky top-0 z-50 flex bg-white p-4 shadow-sm">
+    <div className="sticky top-0 z-50 flex bg-white p-4 shadow-sm items-center">
       <div className="relative h-10 w-20 flex-shrink-0 cursor-pointer">
-        <Image
-          style={{ objectFit: 'contain' }}
-          src="https://links.papareact.com/fqy"
-          fill
-          alt="Reddit 2.0"
-        />
+        <Link href="/">
+          <Image
+            style={{ objectFit: 'contain' }}
+            src="https://links.papareact.com/fqy"
+            fill
+            alt="Reddit 2.0"
+          />
+        </Link>
       </div>
       <div className="flex items-center mx-7 xl:min-w-[300px]">
         <HomeIcon className="h-5 w-5" />

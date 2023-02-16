@@ -110,6 +110,14 @@ type Query {
       """
       configuration: "postgresql_config"
     )
+  postListByPostId(post_id: ID!): post
+    @dbquery(
+      type: "postgresql"
+      query: """
+      SELECT * FROM "post" WHERE "post"."id" = $1
+      """
+      configuration: "postgresql_config"
+    )
   postListByTopic(topic: String!): [post]
     @dbquery(
       type: "postgresql"
