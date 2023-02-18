@@ -213,12 +213,7 @@ type Mutation {
       dml: DELETE
       configuration: "postgresql_config"
     )
-  insertComment(
-    username: String
-    post_id: ID
-    comment: String
-    created_at: DateTime
-  ): comment
+  insertComment(post_id: ID!, username: String!, comment: String!): comment
     @dbquery(
       type: "postgresql"
       schema: "public"

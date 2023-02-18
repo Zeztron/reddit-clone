@@ -1,7 +1,7 @@
 import { gql } from '@apollo/client';
 
 export const ADD_POST = gql`
-  mutation AddPostMutation(
+  mutation addPostMutation(
     $body: String!
     $image: String!
     $subreddit_id: ID!
@@ -21,6 +21,22 @@ export const ADD_POST = gql`
       image
       subreddit_id
       title
+      username
+    }
+  }
+`;
+
+export const ADD_COMMENT = gql`
+  mutation addCommentMutation(
+    $post_id: ID!
+    $username: String!
+    $comment: String!
+  ) {
+    insertComment(post_id: $post_id, username: $username, comment: $comment) {
+      created_at
+      id
+      post_id
+      comment
       username
     }
   }
