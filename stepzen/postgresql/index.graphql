@@ -164,6 +164,17 @@ type Query {
       """
       configuration: "postgresql_config"
     )
+  subredditWithLimit(limit: Int!): [subreddit]
+    @dbquery(
+      type: "postgresql"
+      schema: "public"
+      query: """
+      SELECT * FROM "subreddit"
+      ORDER BY "created_at" DESC
+      LIMIT $1
+      """
+      configuration: "postgresql_config"
+    )
   " Queries for type 'vote' "
   voteList: [vote]
     @dbquery(
