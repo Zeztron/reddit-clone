@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   ArrowDownIcon,
   ArrowUpIcon,
@@ -12,12 +12,72 @@ import TimeAgo from 'react-timeago';
 import Avatar from './Avatar';
 import Link from 'next/link';
 import { Jelly } from '@uiball/loaders';
+import { useSession } from 'next-auth/react';
+import toast from 'react-hot-toast';
+import { GET_VOTES_BY_POST_ID } from '@/graphql/queries';
+import { useMutation, useQuery } from '@apollo/client';
+import { ADD_VOTE } from '@/graphql/mutations';
 
 type Props = {
   post: Post;
 };
 
 const Post = ({ post }: Props) => {
+  const { data: session } = useSession();
+  const [vote, setVote] = useState<boolean>();
+
+  const { data, loading } = useQuery(GET_VOTES_BY_POST_ID, {
+    variables: {
+      post_id: post?.id,
+    },
+  });
+
+  const [addVote] = useMutation(ADD_VOTE, {
+    refetchQueries: [GET_VOTES_BY_POST_ID, 'voteByPostId'],
+  });
+
+  const upVote = async (isUpVote: boolean) => {
+    if (!session) {
+      toast("You'll need to sign in to vote!");
+      return;
+    }
+
+    if (vote && isUpVote) return;
+    if (vote === false && !isUpVote) return;
+
+    await addVote({
+      variables: {
+        post_id: post?.id,
+        username: session?.user?.name,
+        upvote: isUpVote,
+      },
+    });
+  };
+
+  const displayVotes = (data: any) => {
+    const votes: Vote[] = data?.voteByPostId;
+    const displayNumber = votes?.reduce(
+      (total, vote) => (vote.upvote ? (total += 1) : (total -= 1)),
+      0
+    );
+
+    if (votes?.length === 0) return 0;
+
+    if (displayNumber === 0) return votes[0]?.upvote ? 1 : -1;
+
+    return displayNumber;
+  };
+
+  useEffect(() => {
+    const votes: Vote[] = data?.voteByPostId;
+
+    const vote = votes?.find(
+      (vote) => vote.username === session?.user?.name
+    )?.upvote;
+
+    setVote(vote);
+  }, [data]);
+
   if (!post)
     return (
       <div className="flex w-full items-center justify-center p-10 text-xl">
@@ -30,9 +90,19 @@ const Post = ({ post }: Props) => {
       <div className="flex cursor-pointer rounded-md border border-gray-300 bg-white shadow-sm hover:border hover:border-gray-600">
         {/* Votes */}
         <div className="flex flex-col items-center justify-start space-y-1 rounded-l-md bg-gray-50 p-4 text-gray-400">
-          <ArrowUpIcon className="voteButtons hover:text-blue-400" />
-          <p className="text-black font-bold text-xs">0</p>
-          <ArrowDownIcon className="voteButtons hover:text-red-400" />
+          <ArrowUpIcon
+            className={`voteButtons hover:text-blue-400 ${
+              vote && 'text-blue-400'
+            }`}
+            onClick={() => upVote(true)}
+          />
+          <p className="text-black font-bold text-xs">{displayVotes(data)}</p>
+          <ArrowDownIcon
+            className={`voteButtons hover:text-red-400 ${
+              vote === false && 'text-red-400'
+            }`}
+            onClick={() => upVote(false)}
+          />
         </div>
         <div className="p-3 pb-1">
           {/* Header */}

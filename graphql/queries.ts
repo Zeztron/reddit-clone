@@ -108,3 +108,15 @@ export const GET_ALL_POSTS_BY_TOPIC = gql`
     }
   }
 `;
+
+export const GET_VOTES_BY_POST_ID = gql`
+  query getVotesByPostId($post_id: ID!) {
+    voteByPostId(post_id: $post_id) {
+      created_at
+      id
+      post_id
+      upvote
+      username
+    }
+  }
+`;

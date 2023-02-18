@@ -42,6 +42,22 @@ export const ADD_COMMENT = gql`
   }
 `;
 
+export const ADD_VOTE = gql`
+  mutation addVoteMutation(
+    $post_id: ID!
+    $username: String!
+    $upvote: Boolean!
+  ) {
+    insertVote(post_id: $post_id, username: $username, upvote: $upvote) {
+      created_at
+      id
+      post_id
+      upvote
+      username
+    }
+  }
+`;
+
 export const ADD_SUBREDDIT = gql`
   mutation addSubReddit($topic: String!) {
     insertSubreddit(topic: $topic) {
